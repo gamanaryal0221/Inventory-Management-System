@@ -8,6 +8,6 @@ public interface OrderService {
     List<OrderDTO> getAllOrders();
     OrderDTO getOrderById(Long id);
     OrderDTO createOrder(Order order);
-    void updateOrder(Order order);
+    OrderDTO updateOrder(Long id, Order order);
     void deleteOrder(Long id);
 }

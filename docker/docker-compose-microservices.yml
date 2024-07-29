@@ -1,0 +1,109 @@
+services:
+  eureka-server:
+    build:
+      context: ../eureka-server
+      dockerfile: Dockerfile-eureka-server
+    container_name: eureka-server
+    ports:++++
+      - "9000:9000"
+    networks:
+      - docker-network
+
+  api-gateway:
+    build:
+      context: ../inventory-management-system-api-gateway
+      dockerfile: Dockerfile-api-gateway
+    container_name: api-gateway
+    ports:
+      - "9001:9001"
+    environment:
+      EUREKA_SERVER: eureka-server
+      EUREKA_SERVER_PORT: 9000
+    depends_on:
+      - eureka-server
+    networks:
+      - docker-network
+
+  user-service:
+    build:
+      context: ../user-service
+      dockerfile: Dockerfile-user-service
+    container_name: user-service
+    ports:
+      - "9002:9002"
+    depends_on:
+      - eureka-server
+    environment:
+      EUREKA_SERVER: eureka-server
+      EUREKA_SERVER_PORT: 9000
+      MONGODB_SERVER: mongodb
+      MONGODB_SERVER_PORT: 27017
+      MONGODB_USERNAME: root
+      MONGODB_PASSWORD: password
+      MONGODB_DATABASE: user-service
+    networks:
+      - docker-network
+
+  product-service:
+    build:
+      context: ../product-service
+      dockerfile: Dockerfile-product-service
+    container_name: product-service
+    ports:
+      - "9003:9003"
+    depends_on:
+      - eureka-server
+    environment:
+      EUREKA_SERVER: eureka-server
+      EUREKA_SERVER_PORT: 9000
+      MONGODB_SERVER: mongodb
+      MONGODB_SERVER_PORT: 27017
+      MONGODB_USERNAME: root
+      MONGODB_PASSWORD: password
+      MONGODB_DATABASE: product-service
+    networks:
+      - docker-network
+
+  inventory-service:
+    build:
+      context: ../inventory-service
+      dockerfile: Dockerfile-inventory-service
+    container_name: inventory-service
+    ports:
+      - "9004:9004"
+    environment:
+      EUREKA_SERVER: eureka-server
+      EUREKA_SERVER_PORT: 9000
+      MYSQL_SERVER: mysqldb
+      MYSQL_SERVER_PORT: 3306
+      MYSQL_DATABASE_NAME: ivs_inventory_service
+      MYSQLDB_USER: ivs_inventory_service_db_user
+      MYSQLDB_USER_PASSWORD: ivs_inventory_service_db_password
+    depends_on:
+      - eureka-server
+    networks:
+      - docker-network
+
+  order-service:
+    build:
+      context: ../order-service
+      dockerfile: Dockerfile-order-service
+    container_name: order-service
+    ports:
+      - "9005:9005"
+    environment:
+      EUREKA_SERVER: eureka-server
+      EUREKA_SERVER_PORT: 9000
+      MYSQL_SERVER: mysqldb
+      MYSQL_SERVER_PORT: 3306
+      MYSQL_DATABASE_NAME: ivs_order_service
+      MYSQLDB_USER: ivs_order_service_db_user
+      MYSQLDB_USER_PASSWORD: ivs_order_service_db_password
+    depends_on:
+      - eureka-server
+    networks:
+      - docker-network
+
+networks:
+  docker-network:
+    driver: bridge

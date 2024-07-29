@@ -9,6 +9,7 @@ import com.ivs.order_service.domain.Order;
 import com.ivs.order_service.domain.dto.OrderDTO;
 import com.ivs.order_service.domain.dto.ProductDTO;
 import com.ivs.order_service.domain.dto.UserDTO;
+import com.ivs.order_service.repository.OrderRepository;
 import com.ivs.order_service.service.OrderService;
 
 import java.util.ArrayList;
@@ -18,8 +19,8 @@ import java.util.Optional;
 @Service
 public class OrderServiceImpl implements OrderService {
 
-    private List<Order> orderList = new ArrayList<>();
-    private Long orderIdCounter = 1L;
+    @Autowired
+    private OrderRepository orderRepository;
 
     @Autowired
     private RestTemplate restTemplate;
@@ -27,7 +28,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public List<OrderDTO> getAllOrders() {
         List<OrderDTO> orderDTOs = new ArrayList<>();
-        for (Order order : orderList) {
+        for (Order order : orderRepository.findAll()) {
             orderDTOs.add(convertToDTO(order));
         }
         return orderDTOs;
@@ -35,39 +36,33 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public OrderDTO getOrderById(Long id) {
-        Optional<Order> order = orderList.stream()
-                .filter(o -> o.getId().equals(id))
-                .findFirst();
-
-        return order.map(this::convertToDTO).orElse(null);
+        Optional<Order> order = orderRepository.findById(id);
+        return convertToDTO(order.orElse(null));
     }
 
     @Override
     public OrderDTO createOrder(Order order) {
-        order.setId(orderIdCounter++);
-        orderList.add(order);
-        return convertToDTO(order);
+        return convertToDTO(orderRepository.save(order));
     }
 
     @Override
-    public void updateOrder(Order order) {
-        Optional<Order> existingOrder = orderList.stream()
-                .filter(o -> o.getId().equals(order.getId()))
-                .findFirst();
-        existingOrder.ifPresent(o -> {
-            o.setUserId(order.getUserId());
-            o.setProductId(order.getProductId());
-            o.setQuantity(order.getQuantity());
-            o.setTotalPrice(order.getTotalPrice());
-        });
+    public OrderDTO updateOrder(Long id, Order order) {
+        if (orderRepository.existsById(id)) {
+            order.setId(id);
+            return convertToDTO(orderRepository.save(order));
+        } else {
+            return null;
+        }
+
     }
 
     @Override
     public void deleteOrder(Long id) {
-        orderList.removeIf(o -> o.getId().equals(id));
+        orderRepository.deleteById(id);
     }
 
     private OrderDTO convertToDTO(Order order) {
+        if (order == null) return null;
         UserDTO user = null;
         ProductDTO product = null;
 

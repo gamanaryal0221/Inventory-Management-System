@@ -1,66 +1,63 @@
 package com.ivs.user_service.service.impl;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.ivs.user_service.domain.User;
+import com.ivs.user_service.repository.UserRepository;
 import com.ivs.user_service.service.UserService;
+import com.ivs.user_service.service.AuthenticationService;
+import com.ivs.user_service.service.AuthenticationService.PasswordDetails;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class UserServiceImpl implements UserService {
 
-    private List<User> users = new ArrayList<>();
-    private Long userIdCounter = 1L;
+    @Autowired
+    private AuthenticationService authenticationService;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Override
     public List<User> getAllUsers() {
-        return users;
+        return userRepository.findAll();
     }
 
     @Override
-    public User getUserById(Long id) {
-        return users.stream()
-                .filter(user -> user.getId().equals(id))
-                .findFirst()
-                .orElse(null);
+    public User getUserById(String id) {
+        return userRepository.findById(id).orElse(null);
     }
 
     @Override
     public User createUser(User user) {
-        user.setId(userIdCounter++);
-        users.add(user);
-        return user;
+        String receivedPassword = user.getPassword();
+        PasswordDetails passwordDetails = authenticationService.makePassword(receivedPassword);
+        user.setSaltValue(passwordDetails.getSaltValue());
+        user.setPassword(passwordDetails.getHashedPassword());
+
+        return userRepository.save(user);
     }
 
     @Override
-    public User updateUser(Long id, User user) {
-        Optional<User> existingUser = users.stream()
-                .filter(u -> u.getId().equals(id))
-                .findFirst();
-        if (existingUser.isPresent()) {
-            User updatedUser = existingUser.get();
-            updatedUser.setUsername(user.getUsername());
-            updatedUser.setPassword(user.getPassword());
-            updatedUser.setEmail(user.getEmail());
-            return updatedUser;
+    public User updateUser(String id, User user) {
+        Optional<User> existingUserOptional = userRepository.findById(id);
+        if (existingUserOptional.isPresent()) {
+            User existingUser = existingUserOptional.get();
+            existingUser.setFirstName(user.getFirstName());
+            existingUser.setMiddleName(user.getMiddleName());
+            existingUser.setLastName(user.getLastName());
+            existingUser.setMailAddress(user.getMailAddress());
+            return userRepository.save(existingUser);
         } else {
             return null;
         }
     }
 
     @Override
-    public void deleteUser(Long id) {
-        users.removeIf(user -> user.getId().equals(id));
-    }
-
-    @Override
-    public User login(String username, String password) {
-        return users.stream()
-                .filter(user -> user.getUsername().equals(username) && user.getPassword().equals(password))
-                .findFirst()
-                .orElse(null);
+    public void deleteUser(String id) {
+        userRepository.deleteById(id);
     }
 }

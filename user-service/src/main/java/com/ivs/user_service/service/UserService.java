@@ -5,9 +5,8 @@ import com.ivs.user_service.domain.User;
 
 public interface UserService {
     List<User> getAllUsers();
-    User getUserById(Long id);
+    User getUserById(String id);
     User createUser(User user);
-    User updateUser(Long id, User user);
-    void deleteUser(Long id);
-    User login(String username, String password);
+    User updateUser(String id, User user);
+    void deleteUser(String id);
 }

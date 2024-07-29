@@ -1,4 +1,4 @@
-package com.ivs.order_service.domain;
+package com.ivs.inventory_service.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -14,23 +14,20 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "orders")
-public class Order {
-    
+@Table(name = "inventory")
+public class Inventory {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false, updatable = false)
     private Long id;
 
-    @Column(name = "user_id", nullable = false)
-    private String userId;
-
-    @Column(name = "product_id", nullable = false)
+    @Column(name = "product_id", nullable = false, unique = true)
     private String productId;
 
-    @Column(name = "quantity", nullable = false)
-    private int quantity;
+    @Column(name = "total_quantity", nullable = true)
+    private Integer totalQuantity;
 
-    @Column(name = "total_price", nullable = false)
-    private double totalPrice;
+    @Column(name = "reserved_quantity", nullable = true)
+    private Integer reservedQuantity;
 }

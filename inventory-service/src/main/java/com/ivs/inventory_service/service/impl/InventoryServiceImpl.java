@@ -1,53 +1,57 @@
 package com.ivs.inventory_service.service.impl;
 
+import com.ivs.inventory_service.domain.Inventory;
+import com.ivs.inventory_service.repository.InventoryRepository;
+import com.ivs.inventory_service.service.InventoryService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.ivs.inventory_service.domain.InventoryItem;
-import com.ivs.inventory_service.service.InventoryService;
-
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class InventoryServiceImpl implements InventoryService {
 
-    private List<InventoryItem> inventoryItems = new ArrayList<>();
-    private Long inventoryItemIdCounter = 1L;
+    @Autowired
+    private InventoryRepository inventoryRepository;
 
     @Override
-    public List<InventoryItem> getAllInventoryItems() {
-        return inventoryItems;
+    public List<Inventory> getAllInventories() {
+        return inventoryRepository.findAll();
     }
 
     @Override
-    public InventoryItem getInventoryItemById(Long id) {
-        return inventoryItems.stream()
-                .filter(item -> item.getId().equals(id))
-                .findFirst()
-                .orElse(null);
+    public Inventory getInventoryById(Long id) {
+        Optional<Inventory> inventory = inventoryRepository.findById(id);
+        return inventory.orElse(null);
     }
 
     @Override
-    public InventoryItem addInventoryItem(InventoryItem item) {
-        item.setId(inventoryItemIdCounter++);
-        inventoryItems.add(item);
-        return item;
+    public Inventory getInventoryByProductId(String id) {
+        List<Inventory> inventories = inventoryRepository.findByProductId(id);
+        if (inventories != null && inventories.size() > 0) {
+            return inventories.get(0);
+        }
+        return null;
     }
 
     @Override
-    public void updateInventoryItem(InventoryItem item) {
-        Optional<InventoryItem> existingItem = inventoryItems.stream()
-                .filter(i -> i.getId().equals(item.getId()))
-                .findFirst();
-        existingItem.ifPresent(i -> {
-            i.setProductId(item.getProductId());
-            i.setAvailableQuantity(item.getAvailableQuantity());
-        });
+    public Inventory createInventory(Inventory inventory) {
+        return inventoryRepository.save(inventory);
     }
 
     @Override
-    public void deleteInventoryItem(Long id) {
-        inventoryItems.removeIf(item -> item.getId().equals(id));
+    public Inventory updateInventory(Long id, Inventory inventory) {
+        if (inventoryRepository.existsById(id)) {
+            inventory.setId(id);
+            return inventoryRepository.save(inventory);
+        } else {
+            return null;
+        }
+    }
+
+    @Override
+    public void deleteInventory(Long id) {
+        inventoryRepository.deleteById(id);
     }
 }

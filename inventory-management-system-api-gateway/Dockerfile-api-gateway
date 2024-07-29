@@ -1,0 +1,3 @@
+FROM openjdk:21-jdk-slim
+COPY target/ivs-api-gateway-1.jar ivs-api-gateway.jar
+ENTRYPOINT ["java", "-jar", "/ivs-api-gateway.jar"]
