@@ -52,4 +52,10 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/batch")
+    public ResponseEntity<List<User>> getUserByIdInList(@RequestBody List<String> userIdList) {
+        System.out.println("Request received in batch :" + userIdList);
+        return ResponseEntity.ok(userService.getUserByIdInList(userIdList));
+    }
+
 }

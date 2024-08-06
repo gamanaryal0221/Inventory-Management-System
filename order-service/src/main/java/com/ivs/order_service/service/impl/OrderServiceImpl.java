@@ -1,6 +1,7 @@
 package com.ivs.order_service.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -12,9 +13,13 @@ import com.ivs.order_service.domain.dto.UserDTO;
 import com.ivs.order_service.repository.OrderRepository;
 import com.ivs.order_service.service.OrderService;
 
-import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class OrderServiceImpl implements OrderService {
@@ -27,11 +32,8 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public List<OrderDTO> getAllOrders() {
-        List<OrderDTO> orderDTOs = new ArrayList<>();
-        for (Order order : orderRepository.findAll()) {
-            orderDTOs.add(convertToDTO(order));
-        }
-        return orderDTOs;
+        List<Order> orderList = orderRepository.findAll();
+        return convertToDTOList(orderList);
     }
 
     @Override
@@ -62,6 +64,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private OrderDTO convertToDTO(Order order) {
+        System.out.println("convertToDTO - Order:" + order);
         if (order == null) return null;
         UserDTO user = null;
         ProductDTO product = null;
@@ -85,4 +88,45 @@ public class OrderServiceImpl implements OrderService {
 
         return new OrderDTO(user, product, order.getId(), order.getQuantity(), order.getTotalPrice());
     }
+
+
+
+    private List<OrderDTO> convertToDTOList(List<Order> orderList) {
+        if (orderList == null || orderList.isEmpty()) return Collections.emptyList();
+
+        // Extracting unique userIds and productIds
+        Set<String> userIdSet = orderList.stream().map(Order::getUserId).collect(Collectors.toSet());
+        Set<String> productIdSet = orderList.stream().map(Order::getProductId).collect(Collectors.toSet());
+
+        Map<String, UserDTO> userDTOMap = fetchUserDetails(userIdSet).stream().collect(Collectors.toMap(UserDTO::getId, user -> user));
+        Map<String, ProductDTO> productDTOMap = fetchProductDetails(productIdSet).stream().collect(Collectors.toMap(ProductDTO::getId, product -> product));
+
+        // Convert orders to OrderDTOs
+        return orderList.stream()
+                        .map(order -> {
+                            UserDTO user = userDTOMap.getOrDefault(order.getUserId(), new UserDTO(order.getUserId()));
+                            ProductDTO product = productDTOMap.getOrDefault(order.getProductId(), new ProductDTO(order.getProductId()));
+                            return new OrderDTO(user, product, order.getId(), order.getQuantity(), order.getTotalPrice());
+                        })
+                        .collect(Collectors.toList());
+    }
+
+    private List<UserDTO> fetchUserDetails(Set<String> userIdSet) {
+        try {
+            return Arrays.asList(restTemplate.postForObject("http://user-service/users/batch", userIdSet, UserDTO[].class));
+        } catch (HttpClientErrorException e) {
+            System.err.println("Failed to fetch user data: " + e.getMessage());
+            return Collections.emptyList();
+        }
+    }
+    
+    private List<ProductDTO> fetchProductDetails(Set<String> productIdSet) {
+        try {
+            return Arrays.asList(restTemplate.postForObject("http://product-service/products/batch", productIdSet, ProductDTO[].class));
+        } catch (HttpClientErrorException e) {
+            System.err.println("Failed to fetch product data: " + e.getMessage());
+            return Collections.emptyList();
+        }
+    }
+
 }

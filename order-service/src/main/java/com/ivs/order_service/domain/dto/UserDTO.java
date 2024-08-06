@@ -13,4 +13,10 @@ public class UserDTO {
     private String firstName;
     private String middleName;
     private String lastName;
+
+
+    public UserDTO(String id) {
+        this.id = id;
+    }
+
 }

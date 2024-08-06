@@ -14,4 +14,5 @@ public interface ProductService {
     ProductDTO updateProduct(String id, Product product);
     void deleteProduct(String id);
     void notifyInventoryService(HttpMethod httpMethod, String productId);
+    List<Product> getProductByIdInList(List<String> productIdList);
 }

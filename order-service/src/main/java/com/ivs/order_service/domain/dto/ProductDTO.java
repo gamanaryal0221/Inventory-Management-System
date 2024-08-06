@@ -10,4 +10,9 @@ import lombok.NoArgsConstructor;
 public class ProductDTO {
     private String id;
     private String name;
+    
+    public ProductDTO(String id) {
+        this.id = id;
+    }
+
 }

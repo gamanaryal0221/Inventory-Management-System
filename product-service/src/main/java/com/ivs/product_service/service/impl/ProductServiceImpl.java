@@ -11,7 +11,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
@@ -41,6 +40,11 @@ public class ProductServiceImpl implements ProductService {
     public ProductDTO getProductById(String id) {
         Optional<Product> product = productRepository.findById(id);
         return convertToDTO(product.orElse(null));
+    }
+
+    @Override
+    public List<Product> getProductByIdInList(List<String> productIdList){
+        return productRepository.findAllById(productIdList);
     }
 
     @Override

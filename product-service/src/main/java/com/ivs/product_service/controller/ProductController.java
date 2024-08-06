@@ -49,4 +49,10 @@ public class ProductController {
         productService.notifyInventoryService(HttpMethod.DELETE, id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
+    
+    @PostMapping("/batch")
+    public ResponseEntity<List<Product>> getProductByIdInList(@RequestBody List<String> productIdList) {
+        System.out.println("Request received in batch :" + productIdList);
+        return ResponseEntity.ok(productService.getProductByIdInList(productIdList));
+    }
 }

@@ -19,6 +19,7 @@ public class OrderController {
 
     @GetMapping
     public List<OrderDTO> getAllOrders() {
+        System.out.println("Request received to fetch all orders.");
         return orderService.getAllOrders();
     }
 
@@ -34,6 +35,7 @@ public class OrderController {
 
     @PostMapping
     public OrderDTO addOrder(@RequestBody Order order) {
+        System.out.println("Order:" + order);
         return orderService.createOrder(order);
     }
 
